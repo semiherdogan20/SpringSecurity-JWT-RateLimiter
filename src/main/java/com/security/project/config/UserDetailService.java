@@ -26,10 +26,8 @@ public class UserDetailService implements UserDetailsService {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found."));
 
-        // Rolümüzü oluşturuyoruz
+        
         GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole());
-
-        // Spring Security'nin beklediği gibi rolü bir List içerisine alarak (Collections.singletonList) gönderiyoruz
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPwd(),
