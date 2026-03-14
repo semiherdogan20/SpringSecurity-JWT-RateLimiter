@@ -12,7 +12,6 @@ public class EmailSender {
     @Autowired
     private JavaMailSender mailSender;
 
-    // Metot imzasını User ve String code alacak şekilde değiştirdik
     public void sendVerifCode(User user, String code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(user.getEmail());
