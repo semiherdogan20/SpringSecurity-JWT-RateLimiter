@@ -95,7 +95,7 @@ public class Login {
 
         activeCode.setUsed(true);
         emailRepo.save(activeCode);
-
+        //JWT token controller'da üretiliyor ancak ayrı olarak üretilmek istenirse JWTGenerator adlı class'ta da yazılı o sınıfın filter chain'e eklenmesi yeterli olur
         String secret = ApplicationConstants.JWT_SECRET_DEFAULT_VALUE;
         SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         String jwt = Jwts.builder()
