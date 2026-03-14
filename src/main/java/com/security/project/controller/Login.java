@@ -70,7 +70,6 @@ public class Login {
         code.setExpiresAt(LocalDateTime.now().plusMinutes(5));
         emailRepo.save(code);
 
-        // Satır 73 Hatası: EmailSender parametreleri düzeltildi
         emailSender.sendVerifCode(user, otp);
 
         return ResponseEntity.ok().body("Doğrulama kodu email adresinize gönderildi. Lütfen /verify-login sayfasına ilerleyin.");
@@ -80,7 +79,6 @@ public class Login {
     public ResponseEntity<?> verifyLogin(@RequestParam String email, @RequestParam String otpCode, HttpServletRequest request) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Satır 83 Hatası: Repository'ye bu metot eklendiği için artık hata vermeyecek
         EmailVerificationCode activeCode = emailRepo.findTopByUserAndTypeOrderByIdDesc(user, Enums.LOGIN)
                 .orElseThrow(() -> new RuntimeException("Aktif kod bulunamadı"));
 
@@ -115,7 +113,6 @@ public class Login {
 
     private void logAttempt(Integer userId, HttpServletRequest request, boolean success, Enums reason) {
         LoginAttempt attempt = new LoginAttempt();
-        // Entity'ndeki büyük/küçük harf kullanımına uyarlandı (setUserID, setTimeStamp vs.)
         attempt.setUserID(userId);
         attempt.setSuccess(success);
         attempt.setReason(reason);
