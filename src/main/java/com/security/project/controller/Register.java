@@ -44,7 +44,6 @@ public class Register {
         savedUser.setPwd(passwordEncoder.encode(user.getPwd()));
         savedUser.setEmail(user.getEmail());
         savedUser.setStatus(Enums.PENDING);
-        // Satır 47 Hatası: setAuthProvider ve LOCAL enum'u entity'de olmadığı için kaldırıldı.
         savedUser.setRole("ROLE_USER");
         userRepository.save(savedUser);
 
@@ -58,7 +57,6 @@ public class Register {
         emailVerifCode.setExpiresAt(LocalDateTime.now().plusMinutes(15));
         emailRepo.save(emailVerifCode);
 
-        // Satır 61 Hatası: Metot parametreleri uyumlu hale getirildi
         emailSender.sendVerifCode(savedUser, otp);
 
         return ResponseEntity.ok().body("Bilgileriniz kaydedildi. Email doğrulama ekranına yönlendiriliyorsunuz.");
@@ -70,7 +68,6 @@ public class Register {
 
         if(optUser.isPresent()){
             User user = optUser.get();
-            // Satır 72 Hatası: Repository'ye metot eklendiği için hata kalktı
             List<EmailVerificationCode> codes = emailRepo.findByUserAndType(user, Enums.REGISTER);
 
             boolean isValid = false;
