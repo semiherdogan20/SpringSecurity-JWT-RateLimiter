@@ -1,2 +1,200 @@
-# SpringSecurity-JWT-RateLimiter
-Projeye Genel BakışBu proje, Spring Security kullanılarak geliştirilmiş; email-şifre doğrulaması, iki aşamalı doğrulama (OTP) ve gelişmiş denetim günlüğü (audit logging) özelliklerini içeren, backend ve güvenlik odaklı bir kimlik doğrulama sistemidir.Temel AmaçSistemin ana amacı, temel giriş mekanizmalarının ötesine geçerek, üretim ortamına hazır (production-ready) bir güvenlik temeli oluşturmaktır. Stateless (durumsuz) mimari ve çok katmanlı koruma odaklı bu yapı, kullanıcı kimliklerini birden fazla faktörle doğrular.Öne Çıkan Özelliklerİki Aşamalı Doğrulama (OTP): Kayıt ve giriş süreçleri için üretilen 6 haneli OTP kodları, email yoluyla kullanıcıya iletilir.Akıllı Kullanıcı Durumu Yönetimi: Hesaplar; PENDING, ACTIVE ve BLOCKED olmak üzere üç farklı statüde yönetilir.Gelişmiş Denetim Günlükleri (Audit Logs): Her giriş denemesi; IP adresi, zaman damgası, cihaz türü (User-Agent) ve ülke gibi verilerle kaydedilir.Hız Sınırlama (Rate Limiting) Koruması: Brute-force saldırılarını engellemek amacıyla, kısa sürede yapılan aşırı istekleri sınırlayan bir mekanizma içerir.Bu Projeyi Farklı Kılan Teknik DetaylarHibrit Anahtarlı Rate Limiter: Sadece IP adresini takip eden standart yapıların aksine, bu sistem IP + Email kombinasyonunu anahtar (key) olarak kullanır. Bu sayede, ortak ağ kullanan masum kullanıcılar engellenmeden sadece hedeflenen hesap korunur.Kayan Zaman Penceresi (Sliding Window) Mantığı: Sistem, son 1 dakika içindeki denemeleri takip eder. 1 dakika içinde 5'ten fazla deneme yapıldığında istekler otomatik olarak reddedilir.Bilinçli Mimari Tercihi (In-Memory vs Redis): Bu projede hız sınırlama verileri, bellek içi (In-memory HashMap) bir yapıda tutulur. Bu tercih, öğrenme sürecinde karmaşıklığı azaltmak ve tek instance çalışan uygulamalarda performansı artırmak için bilinçli olarak yapılmıştır. Not: Uygulama dokümantasyonunda belirtildiği üzere; çoklu sunucu (distributed) yapısına sahip gerçek üretim ortamları (production) için Redis tabanlı bir çözüm tavsiye edilmektedir.Güçlendirilmiş OTP Güvenliği: OTP tahmin saldırılarını engellemek için kod başına 5 deneme sınırı ve kodun yeniden istenmesi (resend) için 2 dakikalık bekleme süresi uygulanır.Belirsizlikten Uzak Durum Ayrımı: Hesap durumu (User.status) ile giriş doğrulama statüleri, güvenlik açıklarını önlemek için birbirinden tamamen ayrılmıştır.Teknoloji YığınıJava & Spring BootSpring Security (Stateless/JWT Mimarisi)Spring Data JPA & MySQLJJWT (Güvenli Token Yönetimi)JavaMailSender (OTP İletimi)Nasıl Çalıştırılır?MySQL veritabanı bilgilerinizi ve Gmail SMTP Uygulama Şifrenizi src/main/resources/application.properties dosyasına ekleyin.Uygulamayı çalıştırdığınızda, Hibernate gerekli şemayı (springsecurityauth) otomatik olarak oluşturacaktır./api/register endpoint'ini kullanarak yeni bir hesap oluşturun ve OTP doğrulamasıyla sisteme giriş yapın.
+Spring Security Authentication System (JWT + OTP + Rate Limiter)
+📌 Projeye Genel Bakış
+
+Bu proje, Spring Security kullanılarak geliştirilmiş güvenlik odaklı bir Authentication sistemidir.
+Sistem; email-password doğrulaması, OTP tabanlı two-factor verification ve gelişmiş audit logging mekanizmalarını içerir.
+
+Proje ağırlıklı olarak backend mimarisi ve güvenlik mekanizmalarına odaklanır, frontend kısmı minimum seviyede tutulmuştur.
+
+🎯 Temel Amaç
+
+Bu projenin temel amacı, basit login sistemlerinin ötesine geçerek production odaklı bir authentication mimarisi göstermektir.
+
+Sistem şu prensipler üzerine tasarlanmıştır:
+
+Stateless authentication
+
+Multi-layer security mekanizmaları
+
+Detaylı login auditing
+
+Brute-force saldırılarına karşı koruma
+
+🚀 Öne Çıkan Özellikler
+🔐 Two-Factor Authentication (OTP)
+
+JavaMailSender email gönderimini simüle etmek için kullanılmıştır.
+
+Hem register hem de login süreçleri OTP doğrulaması içerir.
+
+6 haneli OTP kodu üretilir
+
+Kod email üzerinden kullanıcıya gönderilir
+
+Kullanıcı doğrulamayı tamamlamadan authentication süreci bitmez
+
+👤 Akıllı User Status Yönetimi
+
+Kullanıcı hesapları üç farklı durumda yönetilir:
+
+PENDING   → Email doğrulaması tamamlanmamış
+ACTIVE    → Hesap doğrulanmış ve kullanılabilir
+BLOCKED   → Sistem tarafından engellenmiş kullanıcı
+
+Bu yapı sayesinde account lifecycle yönetimi ile authentication flow birbirinden ayrılmış olur.
+
+📊 Gelişmiş Audit Logging
+
+Her login attempt aşağıdaki security metadata ile kayıt altına alınır:
+
+IP Address
+
+Timestamp
+
+Device information (User-Agent)
+
+Country bilgisi
+
+Success / failure reason
+
+Bu loglar sayesinde security monitoring ve audit işlemleri yapılabilir.
+
+🛡 Rate Limiting Koruması
+
+Sistemi brute-force login saldırılarına karşı korumak için Rate Limiting mekanizması uygulanmıştır.
+
+Kurallar:
+
+1 dakika içinde maksimum 5 login attempt
+
+Limit aşılırsa:
+
+HTTP 429 - Too Many Requests
+🧠 Teknik Detaylar
+Hybrid Key-Based Rate Limiter
+
+Standart sistemlerde sadece IP adresi kullanılırken, bu projede şu anahtar kullanılır:
+
+Key = IP + Email
+
+Avantajları:
+
+Aynı ağı kullanan masum kullanıcıların engellenmesini önler
+
+Saldırıya uğrayan hesap özel olarak korunur
+
+Daha hassas saldırı önleme sağlar
+
+Sliding Window Rate Limiting
+
+Sistem yalnızca son 1 dakika içindeki denemeleri takip eder.
+
+Çalışma mantığı:
+
+1 dakikadan eski denemeler silinir
+
+Kalan denemeler sayılır
+
+Limit aşılmışsa istek reddedilir
+
+Bu yaklaşım Sliding Window Rate Limiting olarak bilinir.
+
+Bilinçli Mimari Tercih (In-Memory vs Redis)
+
+Rate limiting verileri in-memory HashMap yapısında tutulur.
+
+Bu tercihin sebepleri:
+
+Geliştirme sürecinde karmaşıklığı azaltmak
+
+Single-instance uygulamalarda yüksek performans sağlamak
+
+Rate limiting algoritmasını daha kolay inceleyebilmek
+
+⚠️ Production Notu
+
+Distributed veya multi-server sistemlerde Redis tabanlı distributed rate limiting önerilir.
+
+Güçlendirilmiş OTP Security
+
+OTP sistemi aşağıdaki ek güvenlik önlemlerini içerir:
+
+Her OTP için maksimum 5 verification attempt
+
+OTP için expiration süresi
+
+2 dakika resend cooldown
+
+Kullanılmış OTP kodları tekrar kullanılamaz
+
+Bu mekanizmalar OTP brute-force saldırılarını zorlaştırır.
+
+Security State Ayrımı
+
+Bu projedeki önemli mimari kararlardan biri şu iki durumun ayrılmasıdır:
+
+User account state
+ve
+Login verification state
+
+Bu ayrım sayesinde authentication süreci account lifecycle durumunu yanlışlıkla değiştirmez ve security ambiguity oluşmaz.
+
+🧰 Technology Stack
+
+Java
+
+Spring Boot
+
+Spring Security
+
+JWT (JJWT)
+
+Spring Data JPA
+
+MySQL
+
+JavaMailSender
+
+⚙️ Nasıl Çalıştırılır
+1️⃣ Ortamı Yapılandırın
+
+Aşağıdaki dosyada gerekli ayarları yapın:
+
+src/main/resources/application.properties
+
+Eklenmesi gereken bilgiler:
+
+MySQL database bilgileri
+
+Gmail SMTP App Password
+
+2️⃣ Uygulamayı Çalıştırın
+
+Uygulama başlatıldığında:
+
+Hibernate gerekli database şemasını otomatik oluşturur
+
+Database adı:
+
+springsecurityauth
+3️⃣ API'yi Test Edin
+
+Yeni bir kullanıcı oluşturmak için:
+
+POST /api/register
+
+Daha sonra OTP doğrulamasını tamamlayarak authentication işlemini gerçekleştirebilirsiniz.
+
+💡 Projenin Amacı
+
+Bu proje aşağıdaki backend security mekanizmalarını göstermek amacıyla geliştirilmiştir:
+
+authentication flows
+
+OTP management
+
+login auditing
+
+rate limiting
+
+multi-layer login protection
