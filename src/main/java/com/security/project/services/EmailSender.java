@@ -18,14 +18,14 @@ public class EmailSender {
         message.setTo(user.getEmail());
         message.setSubject("Doğrulama Kodu");
         message.setText("Doğrulama kodunuz: " + code);
-        message.setFrom("semih.123.gn@gmail.com");
+        message.setFrom("xxxxx@gmail.com");
         mailSender.send(message);
     }
 
     public void sendVerifiedMail(User user, String subject, String text){
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(user.getEmail());
-        message.setFrom("semih.123.gn@gmail.com");
+        message.setFrom("xxxxx@gmail.com");
         message.setSubject(subject);
         message.setText(text);
         mailSender.send(message);
