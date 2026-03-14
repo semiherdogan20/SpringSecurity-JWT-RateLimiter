@@ -25,7 +25,7 @@ public class SecurityConfigs {
         http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrf -> csrf.disable());
 
-        // Endpoint yetkilendirme (OAuth2 kaldırıldı)
+    
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/register", "/api/register-verify/**", "/api/login", "/api/verify-login").permitAll()
                 .anyRequest().authenticated()
@@ -42,7 +42,7 @@ public class SecurityConfigs {
             return config;
         }));
 
-        // Rate Limit filtresi JWT doğrulamasından bile önce çalışmalı
+        // Rate Limit filtresi JWT doğrulamasından önce çalışıyor
         http.addFilterBefore(new RateLimitFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JWTValidate(), UsernamePasswordAuthenticationFilter.class);
 
